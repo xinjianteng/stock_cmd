@@ -45,7 +45,12 @@ class _HomePageState extends State<HomePage>
         children: [
           _buildTitle(),
           _buildCmdingView(),
-          const Text('目前只支持深证和沪市',style: TextStyle(color:  Color(0x33AEAEB0),),),
+          const Text(
+            '目前只支持深证和沪市',
+            style: TextStyle(
+              color: Color(0x33AEAEB0),
+            ),
+          ),
           _buildDataTable(),
           _buildActionButtons(),
         ],
@@ -135,11 +140,10 @@ class _HomePageState extends State<HomePage>
 
     return DataRow(
       cells: [
-        DataCell(_buildCellView(
-            '${entry.name} ',
-            isRize: isRize)),
-        DataCell(_buildCellView('[${entry.calculateIncreaseRate().toStringAsFixed(2)}%]')),
+        DataCell(_buildCellView('${entry.name} ', isRize: isRize)),
         DataCell(_buildCellView(entry.code)),
+        DataCell(_buildCellView(
+            '[${entry.calculateIncreaseRate().toStringAsFixed(2)}%]')),
         DataCell(_buildCellView(entry.currentPrice.toStringAsFixed(2))),
         DataCell(_buildCellView(entry.yesterdayClosePrice.toStringAsFixed(2))),
         DataCell(_buildCellView(entry.todayOpenPrice.toStringAsFixed(2))),
