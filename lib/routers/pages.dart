@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
 import '../../page/pages.dart';
+import '../page/eastmoney/eastmoney_view.dart';
 import 'routes.dart';
 
 class AppPages {

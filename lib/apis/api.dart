@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:gbk_codec/gbk_codec.dart';
-import 'package:stock_cmd/entry/stock_info_entry.dart';
+import 'package:stock_cmd/entry/stock.dart';
 
 import '../entry/stock_dfcf_entry.dart';
 import '../utils/utils.dart';
@@ -77,7 +77,7 @@ class Api {
     }
   }
 
-  static Future<List<StockInfoEntry>> getStockInfoByCode(
+  static Future<List<Stock>> getStockInfoByCode(
       List<String> codes) async {
     // http://qt.gtimg.cn/q=sz000002
     try {
@@ -85,7 +85,7 @@ class Api {
       baseOptions.baseUrl = 'http://qt.gtimg.cn/';
       baseOptions.responseType = ResponseType.bytes;
 
-      List<StockInfoEntry> dataList = [];
+      List<Stock> dataList = [];
       for (var code in codes) {
         var codeParams=determineExchange(code);
         var response = await HttpUtil().get(
@@ -95,7 +95,8 @@ class Api {
         // 使用 gbk_codec 解码 GBK 编码的字节数据
         String decodedData = gbk_bytes.decode(response);
         try {
-          StockInfoEntry stockInfo = parseStockInfo(decodedData);
+          Stock stockInfo = parseStockInfo(decodedData);
+          logPrint( "****"+stockInfo.toString());
           dataList.add(stockInfo);
         }catch(e){
           logPrint("error:$e");
@@ -108,12 +109,12 @@ class Api {
     }
   }
 
-  static StockInfoEntry parseStockInfo(String response) {
+  static Stock parseStockInfo(String response) {
     // 去掉字符串两边的引号
     response = response.replaceAll('"', '');
     // 按照波浪线分割字符串
     List<String> parts = response.split('~');
     // 创建 StockInfo 对象
-    return StockInfoEntry.fromJson(parts);
+    return Stock.fromJson(parts);
   }
 }

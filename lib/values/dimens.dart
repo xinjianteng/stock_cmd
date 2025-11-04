@@ -12,25 +12,9 @@ class AppDimens {
   static double desktopWidth = 1002.0;
   static double desktopHeight = 709.0;
 
+
+
   static double margin = 17;
-
-  static const double titleHeight = 54.0;
-
-  static const double menuHeight = 56.0;
-
-  static const double menuTextSize = 10.0;
-  static const double menuImgSize = 20.0;
-
-  static const double menuBigSize = 144.0;
-
-  // static const double elevation = 1.0;
-
-  static double space = 5.0.w;
-  static double lineH = 0.2.h;
-
-  static double btnHeight = 44.h;
-  static double btnWidthMin = 48.w;
-  static double btnHeightMin = 12.h;
 
   static double btnWidthNor = GetPlatform.isMobile ? 72.w : 72;
   static double btnHeightNor = GetPlatform.isMobile ? 20.w : 20;
@@ -48,18 +32,6 @@ class AppDimens {
 
 
   static double imageWidth = GetPlatform.isMobile ? 100.w : 100;
-
-  static double w6 = GetPlatform.isMobile ? 6.w : 6;
-  static double w12 = GetPlatform.isMobile ? 12.w : 12;
-  static double w76 = GetPlatform.isMobile ? 76.w : 76;
-  static double h95 = GetPlatform.isMobile ? 95.h : 95;
-  static double h16 = GetPlatform.isMobile ? 16.h : 16;
-  static double h38 = GetPlatform.isMobile ? 38.h : 38;
-  static double h1 = GetPlatform.isMobile ? 1.h : 1;
-  static double h10 = GetPlatform.isMobile ? 10.h : 10;
-  static double h8 = GetPlatform.isMobile ? 8.h : 8;
-  static double h5 = GetPlatform.isMobile ? 5.h : 5;
-  static double sp16 = GetPlatform.isMobile ? 16.sp : 16;
 
   static double getStatusBarHeight() {
     // 添加了try-catch来处理可能的异常

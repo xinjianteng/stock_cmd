@@ -9,7 +9,7 @@ class AppStrings {
 
 
   static const String  cmdSystemInfo =
-      'Microsoft Windows [版本 10.0.19045.5131]\n(c) Microsoft Corporation。保留所有权利。';
+      'Microsoft Windows [版本 10. 0. 19045. 5131]\n(c) Microsoft Corporation。 保留所有权利。';
 
 
   static const String cmdTitle = "C:\\WINDOWS\\system32\\cmd.exe";

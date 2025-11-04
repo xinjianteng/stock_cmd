@@ -1,38 +1,23 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
+import 'package:stock_cmd/entry/stock.dart';
 import 'package:stock_cmd/utils/logger_util.dart';
 import 'package:stock_cmd/utils/prefs_util.dart';
 
 import '../../apis/api.dart';
-import '../../entry/stock_info_entry.dart';
 
 class HomeLogic extends GetxController with GetSingleTickerProviderStateMixin {
   late AnimationController controller;
   late Animation<double> animation;
 
-  RxList<StockInfoEntry> stockEntrys = <StockInfoEntry>[].obs;
+  // RxList<StockInfoEntry> stockEntrys = <StockInfoEntry>[].obs;
+
+  RxList<Stock> stocks = <Stock>[].obs;
 
   String inputText = "";
 
-  final List<String> columns = [
-    '名称',
-    '代码',
-    '涨幅',
-    '当前',
-    '昨收',
-    '今开',
-    '最高',
-    '最低',
-    '成交量（万手）',
-    '成交额（亿）',
-    '换手率',
-    '=',
-  ];
 
-  RxDouble fontSize= 12.0.obs;
-  RxDouble cellWidth= (ScreenUtil().screenWidth/12).obs;
 
   @override
   void onInit() {
@@ -62,7 +47,7 @@ class HomeLogic extends GetxController with GetSingleTickerProviderStateMixin {
   }
 
   void requestByCode() async {
-    stockEntrys.clear();
+    stocks.clear();
     var stockCodes = PrefsUtil().stockCodes;
     List<String> stockCodesList = stockCodes.split(",");
     // 去重
@@ -70,7 +55,8 @@ class HomeLogic extends GetxController with GetSingleTickerProviderStateMixin {
 
     if (stockCodesList.isNotEmpty) {
       var response = await Api.getStockInfoByCode(stockCodesList);
-      stockEntrys.addAll(response);
+
+      stocks.addAll(response);
     }
     update();
   }
@@ -90,32 +76,11 @@ class HomeLogic extends GetxController with GetSingleTickerProviderStateMixin {
 
   void cleanStock() {
     PrefsUtil().updateStockCodes('');
-    stockEntrys.clear();
+    stocks.clear();
     update();
   }
 
-  void addFontSize(){
-    if(cellWidth.value * (fontSize.value / 14.0)>=cellWidth.value ){
-      SmartDialog.showToast("不能再大了");
-      return;
-    }else{
-      fontSize.value += 2;
-      update();
-    }
 
-
-  }
-
-  void reduceFontSize(){
-    if(fontSize.value<=2){
-      SmartDialog.showToast("不能再小了");
-      return;
-    }else{
-      fontSize.value -= 2;
-      update();
-    }
-
-  }
 
   void delStockByCode(String code) {
     var stockCodes = PrefsUtil().stockCodes;

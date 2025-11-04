@@ -18,6 +18,9 @@ class EastmoneyPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          TextButton(onPressed: (){
+            Get.back();
+          }, child: Text('返回')),
           Container(
             padding: const EdgeInsets.only(bottom: 16.0),
             child: Text(

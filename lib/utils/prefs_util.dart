@@ -54,9 +54,9 @@ class PrefsUtil {
     _prefs.setInt('themeMode', value);
   }
 
-  String get stockCodes=> _prefs.getString('stockCodes') ?? '';
-   updateStockCodes(String value) {
+  String get stockCodes => _prefs.getString('stockCodes') ?? '';
+
+  updateStockCodes(String value) {
     _prefs.setString('stockCodes', value);
   }
-
 }
