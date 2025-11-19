@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:stock_cmd/entry/stock.dart';
+import 'package:stock_cmd/utils/utils.dart';
 
+import '../../routers/names.dart';
 import '../../values/values.dart';
 import 'home_logic.dart';
 
@@ -25,6 +27,9 @@ class _HomePageState extends State<HomePage>
 
   double _itemHeight = 100.0.h;
 
+  //布局方式 1:长列表，2：分组
+  static const int layoutMethod = 2;
+
   /// 初始化页面状态
   @override
   void initState() {
@@ -37,9 +42,9 @@ class _HomePageState extends State<HomePage>
   /// 资源释放处理
   @override
   void dispose() {
-    logic.dispose();
     _controller.dispose();
     _focusNode.dispose();
+    logic.dispose(); // 放最后确保其他资源已清理完毕
     super.dispose();
   }
 
@@ -54,7 +59,7 @@ class _HomePageState extends State<HomePage>
         children: [
           _buildTitle(),
           _buildCmdingView(),
-          Expanded(child: _buildDataView()),
+          Flexible(child: _buildDataView()),
           _buildActionButtons(),
         ],
       ),
@@ -71,7 +76,7 @@ class _HomePageState extends State<HomePage>
           crossAxisSpacing: 1.0,
           childAspectRatio: 6.8,
         ),
-        physics: const NeverScrollableScrollPhysics(),
+        physics: const AlwaysScrollableScrollPhysics(),
         itemBuilder: (context, itemIndex) {
           return _buildItemView(itemIndex);
         },
@@ -82,33 +87,44 @@ class _HomePageState extends State<HomePage>
   Widget _buildItemView(int itemIndex) {
     final entry = logic.stocks.value[itemIndex];
     final isRize = entry.changePercent > 0;
-    final variableStyle = _buildVariableStyle(isRize);
 
-    return Container(
-      height: _itemHeight,
-      decoration: BoxDecoration(
-        color: AppColors.black,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.divider,
-            offset: const Offset(0.0, 0.0),
-            spreadRadius: 0.1,
-            blurRadius: 0.1,
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          _buildCodeName(entry),
-          _buildTodayMarket(entry, isRize),
-          _buildTodayPrice(entry),
-          _buildMarketInfo_1(entry),
-          _buildMarketInfo_2(entry),
-          _buildTrade_1(entry),
-          _buildTrade_2(entry),
-        ],
+    return GestureDetector(
+      onTap: () {
+        // 跳转到股票详情页
+        Get.toNamed(
+          AppRoutes.stockDetail,
+          parameters: {
+            'code': entry.stockCode,
+            'name': entry.stockName,
+          },
+        );
+      },
+      child: Container(
+        height: _itemHeight,
+        decoration: BoxDecoration(
+          color: AppColors.black,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.divider,
+              offset: const Offset(0.0, 0.0),
+              spreadRadius: 0.1,
+              blurRadius: 0.1,
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _buildCodeName(entry),
+            _buildTodayMarket(entry, isRize),
+            _buildTodayPrice(entry),
+            _buildMarketInfo_1(entry),
+            _buildMarketInfo_2(entry),
+            _buildTradeList(entry.buyOrders, "买"),
+            _buildTradeList(entry.sellOrders, "卖"), // 修改此处用于展示卖单
+          ],
+        ),
       ),
     );
   }
@@ -119,14 +135,25 @@ class _HomePageState extends State<HomePage>
       height: _itemHeight,
       alignment: Alignment.centerLeft,
       decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.divider.withOpacity(0.3),
+            AppColors.black,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(8.0),
         border: Border.all(
           color: AppColors.divider,
-          width: 0.1,
+          width: 0.5,
         ),
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-
           Text(
             '${entry.marketType}\n${entry.stockName}\n${entry.stockCode}',
             style: TextStyle(
@@ -135,16 +162,34 @@ class _HomePageState extends State<HomePage>
               fontWeight: FontWeight.bold,
               decoration: TextDecoration.underline,
               decorationColor: AppColors.divider,
-              decorationThickness: 1.0,
-              decorationStyle: TextDecorationStyle.solid,
             ),
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.left,
-            softWrap: true,
-            textWidthBasis: TextWidthBasis.longestLine,
             selectionColor: AppColors.divider,
           ),
-          TextButton(onPressed: (){ logic.delStockByCode(entry.stockCode);}, child: Text('X'))
+          Spacer(),
+          MaterialButton(
+            padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 1.h),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                bottomRight: Radius.circular(8.0),
+                bottomLeft: Radius.circular(8.0),
+              ),
+            ),
+            height: 25.h,
+            color: AppColors.red.withOpacity(0.8),
+            onPressed: () {
+              logic.delStockByCode(entry.stockCode);
+            },
+            child: Text(
+              '删自选',
+              style: TextStyle(
+                fontSize: 9.sp,
+                color: AppColors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -160,13 +205,15 @@ class _HomePageState extends State<HomePage>
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            '${entry.currentPrice}',
-            style: TextStyle(
-              fontSize: 20.sp,
-              color: isRize ? AppColors.red : AppColors.primary,
-            ),
-          ),
+          Obx(() {
+            return Text(
+              '${entry.currentPrice.value}',
+              style: TextStyle(
+                fontSize: 20.sp,
+                color: isRize ? AppColors.red : AppColors.primary,
+              ),
+            );
+          }),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -216,7 +263,8 @@ class _HomePageState extends State<HomePage>
                 entry.highPrice.toString(),
                 style: TextStyle(
                   fontSize: 10.sp,
-                  color: entry.highPrice > entry.openPrice
+                  color: (entry.highPrice > entry.openPrice) &&
+                          (entry.openPrice > entry.previousClose)
                       ? AppColors.red
                       : AppColors.primary,
                 ),
@@ -318,7 +366,7 @@ class _HomePageState extends State<HomePage>
             '量比  ${entry.volumeRatio}',
             style: TextStyle(
               fontSize: 10.sp,
-              color: AppColors.divider,
+              color: entry.volumeRatio > 1 ? AppColors.red : AppColors.primary,
             ),
           ),
           Text(
@@ -340,43 +388,30 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  /// 构建行情信息列
-  Widget _buildTrade_1(Stock entry) {
+  /// 构建交易订单列表（买入/卖出）
+  Widget _buildTradeList(List<OrderBookEntry> orders, String prefix) {
     return Container(
       width: 80.w,
       height: _itemHeight,
       alignment: Alignment.centerLeft,
       child: ListView.builder(
-          itemBuilder: (context, index) {
-            return Text(
-              '买${index + 1} ${entry.buyOrders[index].price.toStringAsFixed(2)}  ${entry.buyOrders[index].volume}',
-              style: TextStyle(
-                fontSize: 10.sp,
-                color: AppColors.divider,
-              ),
-            );
-          },
-          itemCount: entry.buyOrders.length),
-    );
-  }
+        itemBuilder: (context, index) {
+          final order = orders[index];
+          final price = order.price.toStringAsFixed(2);
+          final volume = order.volume > 10000
+              ? '${(order.volume / 10000).toStringAsFixed(2)}万'
+              : '${order.volume}';
 
-  /// 构建行情信息列
-  Widget _buildTrade_2(Stock entry) {
-    return Container(
-      width: 80.w,
-      height: _itemHeight,
-      alignment: Alignment.centerLeft,
-      child: ListView.builder(
-          itemBuilder: (context, index) {
-            return Text(
-              '买${index + 1} ${entry.buyOrders[index].price.toStringAsFixed(2)}  ${entry.buyOrders[index].volume}',
-              style: TextStyle(
-                fontSize: 10.sp,
-                color: AppColors.divider,
-              ),
-            );
-          },
-          itemCount: entry.buyOrders.length),
+          return Text(
+            '$prefix${index + 1} $price  $volume',
+            style: TextStyle(
+              fontSize: 10.sp,
+              color: AppColors.divider,
+            ),
+          );
+        },
+        itemCount: orders.length,
+      ),
     );
   }
 
@@ -398,11 +433,12 @@ class _HomePageState extends State<HomePage>
   Widget _buildCmdingView() {
     return Container(
       width: double.infinity,
+      padding: const EdgeInsets.only(bottom: 16.0),
       child: Row(
         children: [
           Text(
             AppStrings.cmdStr,
-            style: buildBtnStyle(),
+            style: _buildBtnStyle(),
           ),
         ],
       ),
@@ -412,83 +448,132 @@ class _HomePageState extends State<HomePage>
   /// 构建操作按钮区
   Widget _buildActionButtons() {
     return Container(
-      padding: const EdgeInsets.only(top: 16.0),
+      padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 16.w),
       width: double.infinity,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.black,
         border: Border(
           top: AppBorders.primaryBorder,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.divider.withOpacity(0.2),
+            offset: Offset(0, -2),
+            blurRadius: 4,
+          ),
+        ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Column(
         children: [
-          TextButton(
-            onPressed: logic.cleanStock,
-            style: AppStyles.buildTextBtnStyle(),
-            child: Text('Clean', style: buildBtnStyle()),
-          ),
-          TextButton(
-            onPressed: logic.requestByCode,
-            style: AppStyles.buildTextBtnStyle(),
-            child: Text('Refresh', style: buildBtnStyle()),
-          ),
-          TextButton(
-            onPressed: () {
-              Get.defaultDialog(
-                title: '添加成功',
-                content: TextField(
-                  controller: _controller,
-                  focusNode: _focusNode,
-                  cursorColor: AppColors.black,
-                  maxLines: 1,
-                  keyboardType: TextInputType.text,
-                  decoration: InputDecoration(
-                    hintText: '请输入股票代码',
-                    hintStyle: TextStyle(
-                      fontSize: 14.sp,
-                      color: AppColors.divider,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildStyledButton('清空', logic.cleanStock, AppColors.orange),
+              _buildStyledButton('刷新', logic.requestByCode, AppColors.blue),
+              _buildStyledButton('新增', (){
+                Get.defaultDialog(
+                  title: '添加成功',
+                  content: TextField(
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    cursorColor: AppColors.black,
+                    maxLines: 1,
+                    keyboardType: TextInputType.text,
+                    decoration: InputDecoration(
+                      hintText: '请输入股票代码...（多个股（/）分开）',
+                      hintStyle: TextStyle(
+                        fontSize: 14.sp,
+                        color: AppColors.divider,
+                      ),
+                      border: InputBorder.none,
                     ),
-                    border: InputBorder.none,
+                    onSubmitted: (value) {
+                      _addCode(value);
+                    },
                   ),
-                  onSubmitted: (value) {
-                    try {
-                      if (value.isNotEmpty) {
-                        logic.addStock(value.trim());
-                        _controller.clear();
-                      }
-                    } catch (e) {
-                      print('Error: $e');
-                      // TODO: 添加用户友好的错误提示
-                    } finally {
-                      _focusNode.unfocus();
-                    }
+                  textCancel: '取消',
+                  textConfirm: '确定',
+                  onConfirm: () {
+                    _addCode(_controller.text);
                   },
-                ),
-                textCancel: '取消',
-                textConfirm: '确定',
-                onConfirm: () {
-                  Get.back();
-                },
-              );
-            },
-            style: AppStyles.buildTextBtnStyle(),
-            child: Text('Add', style: buildBtnStyle()),
-          ),
-          TextButton(
-            onPressed: () {},
-            style: AppStyles.buildTextBtnStyle(),
-            child: Text('蓝底', style: buildBtnStyle()),
-          ),
-          const Text(
-            '目前只支持深证和沪市',
-            style: TextStyle(
-              color: AppColors.blue,
-            ),
+                  cancelTextColor: AppColors.black,
+                  confirmTextColor: AppColors.black,
+                );
+              }, AppColors.green),
+
+              TextButton(
+                onPressed: () {},
+                style: AppStyles.buildTextBtnStyle(),
+                child: Text('蓝底', style: _buildBtnStyle()),
+              ),
+              Spacer(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    '目前只支持深证和沪市',
+                    style: TextStyle(
+                      color: AppColors.blue,
+                      fontSize: 12,
+                    ),
+                  ),
+                  SizedBox(width: 16.w),
+                  // TextButton(
+                  //   onPressed: () {
+                  //     Get.toNamed(AppRoutes.dongfangcaifu);
+                  //   },
+                  //   style: AppStyles.buildTextBtnStyle(),
+                  //   child: Text('K线', style: _buildBtnStyle()),
+                  // ),
+                ],
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+
+
+  // 新增样式化按钮方法
+  Widget _buildStyledButton(String text, VoidCallback onPressed, Color color) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 8.w),
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: AppColors.white,
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          elevation: 2,
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 12.sp,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _addCode(String value) {
+    try {
+      if (value.isNotEmpty) {
+        logic.addStock(value.trim());
+        _controller.clear();
+      }
+    } catch (e) {
+      Get.snackbar("错误", "添加失败，请重试");
+      print('Error: $e');
+    } finally {
+      _focusNode.unfocus();
+    }
   }
 
   /// 构建动态文本样式
@@ -500,7 +585,7 @@ class _HomePageState extends State<HomePage>
   }
 
   /// 构建按钮通用样式
-  TextStyle buildBtnStyle() {
+  TextStyle _buildBtnStyle() {
     return const TextStyle(
       fontSize: 14,
       color: AppColors.white,

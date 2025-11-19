@@ -1,3 +1,5 @@
+import 'package:get/get.dart';
+
 class Stock {
   // 基础信息
   String marketType; // 0: 1:沪A，51:深A
@@ -6,7 +8,7 @@ class Stock {
 
 
   // 价格信息
-  double currentPrice; // 3: 当前价格
+  RxDouble currentPrice; // 3: 当前价格
   double previousClose; // 4: 昨收
   double openPrice; // 5: 今开
   double highPrice; // 33: 最高价
@@ -105,7 +107,7 @@ class Stock {
       marketType: getMarketType(parts[0]),
       stockName: parts[1],
       stockCode: parts[2],
-      currentPrice: double.parse(parts[3]),
+      currentPrice: double.parse(parts[3]).obs,
       previousClose: double.parse(parts[4]),
       openPrice: double.parse(parts[5]),
       volume: int.parse(parts[6]),

@@ -3,7 +3,7 @@
 class AppRoutes {
   static const home = '/home';
   static const dongfangcaifu = '/dongfangcaifu';
-
+  static const stockDetail = '/stockDetail';
 
 
   static const notFound = '/not_found';

@@ -22,6 +22,9 @@ dependencies:
 
   # 屏幕适配  https://github.com/OpenFlutter/flutter_screenutil
   flutter_screenutil: ^5.9.3
+  
+  # K线图表库
+  fl_chart: ^1.1.1
 
   #  sqflite: ^2.4.1
   sqflite_common_ffi: ^2.3.4+4
@@ -40,7 +43,7 @@ dependencies:
   html: ^0.15.5
   dio: ^5.7.0
   flutter_smart_dialog: ^4.9.8+5
-
+  pull_to_refresh: ^2.0.0       # 下拉刷新组件
 
   gbk_codec: ^0.4.0
 
