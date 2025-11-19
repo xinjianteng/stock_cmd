@@ -501,11 +501,11 @@ class _HomePageState extends State<HomePage>
                 );
               }, AppColors.green),
 
-              TextButton(
-                onPressed: () {},
-                style: AppStyles.buildTextBtnStyle(),
-                child: Text('蓝底', style: _buildBtnStyle()),
-              ),
+              // TextButton(
+              //   onPressed: () {},
+              //   style: AppStyles.buildTextBtnStyle(),
+              //   child: Text('蓝底', style: _buildBtnStyle()),
+              // ),
               Spacer(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
